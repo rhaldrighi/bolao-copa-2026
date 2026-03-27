@@ -43,10 +43,16 @@ export default function LoginPage() {
 
     if (error) {
       setError(`Erro: ${error.message}`)
+      setLoading(false)
     } else {
-      window.location.href = '/dashboard'
+      // Aguarda a sessão ser persistida nos cookies antes de redirecionar
+      supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          window.location.href = '/dashboard'
+        }
+      })
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   return (
