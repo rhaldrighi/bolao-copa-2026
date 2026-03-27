@@ -44,7 +44,7 @@ export default function LoginPage() {
     if (error) {
       setError(`Erro: ${error.message}`)
     } else {
-      router.push('/dashboard')
+      window.location.href = '/dashboard'
     }
     setLoading(false)
   }
