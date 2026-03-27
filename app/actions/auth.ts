@@ -22,7 +22,7 @@ export async function verifyOTPAction(email: string, token: string) {
   const { error } = await supabase.auth.verifyOtp({
     email,
     token,
-    type: 'magiclink',
+    type: 'email',
   })
 
   if (error) return { error: error.message }
