@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { verifyOTPAction } from './actions/auth'
 
 export default function LoginPage() {
   const [email, setEmail]   = useState('')
@@ -9,7 +9,6 @@ export default function LoginPage() {
   const [sent, setSent]     = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError]   = useState('')
-  const router = useRouter()
   const supabase = createClient()
 
   async function handleSendCode(e: React.FormEvent) {
@@ -35,24 +34,11 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
 
-    const { error } = await supabase.auth.verifyOtp({
-      email: email.trim(),
-      token: code.trim(),
-      type: 'magiclink',
-    })
-
-    if (error) {
-      setError(`Erro: ${error.message}`)
-      setLoading(false)
-    } else {
-      // Aguarda a sessão ser persistida nos cookies antes de redirecionar
-      supabase.auth.onAuthStateChange((event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-          window.location.href = '/dashboard'
-        }
-      })
-      setLoading(false)
+    const result = await verifyOTPAction(email.trim(), code.trim())
+    if (result?.error) {
+      setError(`Erro: ${result.error}`)
     }
+    setLoading(false)
   }
 
   return (
