@@ -37,8 +37,10 @@ export default function LoginPage() {
     const result = await verifyOTPAction(email.trim(), code.trim())
     if (result?.error) {
       setError(`Erro: ${result.error}`)
+      setLoading(false)
+    } else {
+      window.location.href = '/dashboard'
     }
-    setLoading(false)
   }
 
   return (
