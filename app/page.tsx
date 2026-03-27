@@ -23,7 +23,7 @@ export default function LoginPage() {
     })
 
     if (error) {
-      setError('Erro ao enviar email. Verifique o endereço e tente novamente.')
+      setError(`Erro: ${error.message}`)
     } else {
       setSent(true)
     }
