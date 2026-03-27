@@ -42,7 +42,7 @@ export default function LoginPage() {
     })
 
     if (error) {
-      setError(`Código inválido ou expirado. Tente novamente.`)
+      setError(`Erro: ${error.message}`)
     } else {
       router.push('/dashboard')
     }
