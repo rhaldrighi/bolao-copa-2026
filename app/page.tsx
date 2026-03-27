@@ -118,10 +118,10 @@ export default function LoginPage() {
                 <input
                   type="text"
                   value={code}
-                  onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  placeholder="000000"
+                  onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                  placeholder="00000000"
                   required
-                  maxLength={6}
+                  maxLength={8}
                   className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm text-center
                              tracking-widest text-2xl font-bold
                              focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
@@ -134,7 +134,7 @@ export default function LoginPage() {
 
               <button
                 type="submit"
-                disabled={loading || code.length !== 6}
+                disabled={loading || code.length < 6}
                 className="w-full bg-green-700 hover:bg-green-800 disabled:bg-gray-300
                            text-white font-bold py-3 rounded-lg transition-colors text-sm"
               >
