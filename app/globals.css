@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+* { box-sizing: border-box; }
+
+body {
+  background-color: #f0f7f0;
+  color: #111827;
+  font-family: 'Inter', Arial, sans-serif;
+}
+
+/* Copa green gradient header */
+.copa-header {
+  background: linear-gradient(135deg, #006400 0%, #228B22 60%, #004d00 100%);
+}
+
+/* Match card locked state */
+.match-locked {
+  opacity: 0.7;
+}
+
+/* Number input arrows hide */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] { -moz-appearance: textfield; }
+
+/* Scrollbar thin */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: #228B22; border-radius: 3px; }
+
+.tab-active {
+  background: #006400;
+  color: white;
+}
+
+.tab-inactive {
+  background: white;
+  color: #006400;
+  border: 1px solid #006400;
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-copa-green hover:bg-copa-dark text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-150;
+  }
+  .btn-secondary {
+    @apply bg-white hover:bg-gray-50 text-copa-green font-semibold py-2 px-4 rounded-lg border border-copa-green transition-colors duration-150;
+  }
+  .card {
+    @apply bg-white rounded-xl shadow-sm border border-gray-100 p-4;
+  }
+}
