@@ -26,5 +26,10 @@ export async function verifyOTPAction(email: string, token: string) {
   })
 
   if (error) return { error: error.message }
+
+  // Verifica se a sessão foi estabelecida
+  const { data: sessionData } = await supabase.auth.getSession()
+  if (!sessionData.session) return { error: 'Sessão não estabelecida após verificação' }
+
   return { success: true }
 }
