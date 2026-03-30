@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
+import { verifyOTPAction } from '@/app/actions/auth'
 
 function LoginContent() {
   const [email, setEmail]   = useState('')
@@ -39,30 +40,18 @@ function LoginContent() {
     setLoading(false)
   }
 
-  function handleVerifyCode(e: React.FormEvent) {
+  async function handleVerifyCode(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError('')
 
-    // Submit nativo para a Route Handler — o browser processa Set-Cookie do redirect
-    const form = document.createElement('form')
-    form.method = 'POST'
-    form.action = '/api/auth/verify'
+    const result = await verifyOTPAction(email.trim(), code.trim())
 
-    const emailInput = document.createElement('input')
-    emailInput.type = 'hidden'
-    emailInput.name = 'email'
-    emailInput.value = email.trim()
-    form.appendChild(emailInput)
-
-    const tokenInput = document.createElement('input')
-    tokenInput.type = 'hidden'
-    tokenInput.name = 'token'
-    tokenInput.value = code.trim()
-    form.appendChild(tokenInput)
-
-    document.body.appendChild(form)
-    form.submit()
+    // Se chegou aqui, verifyOTPAction retornou um erro (redirect nunca retorna)
+    if (result?.error) {
+      setError(`❌ ${result.error}`)
+      setLoading(false)
+    }
   }
 
   return (
