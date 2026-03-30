@@ -1,14 +1,25 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
 
-export default function LoginPage() {
+function LoginContent() {
   const [email, setEmail]   = useState('')
   const [code, setCode]     = useState('')
   const [sent, setSent]     = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError]   = useState('')
   const supabase = createClient()
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const err = searchParams.get('err')
+    if (err) {
+      setSent(true)  // mantém na tela de código
+      setError(`❌ ${err}`)
+    }
+  }, [searchParams])
 
   async function handleSendCode(e: React.FormEvent) {
     e.preventDefault()
@@ -28,52 +39,30 @@ export default function LoginPage() {
     setLoading(false)
   }
 
-  async function handleVerifyCode(e: React.FormEvent) {
+  function handleVerifyCode(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError('')
 
-    // 1. Verificar OTP client-side
-    setError('Verificando código...')
-    const { data, error } = await supabase.auth.verifyOtp({
-      email: email.trim(),
-      token: code.trim(),
-      type: 'email',
-    })
+    // Submit nativo para a Route Handler — o browser processa Set-Cookie do redirect
+    const form = document.createElement('form')
+    form.method = 'POST'
+    form.action = '/api/auth/verify'
 
-    if (error) {
-      setError(`❌ Erro OTP: ${error.message}`)
-      setLoading(false)
-      return
-    }
+    const emailInput = document.createElement('input')
+    emailInput.type = 'hidden'
+    emailInput.name = 'email'
+    emailInput.value = email.trim()
+    form.appendChild(emailInput)
 
-    if (!data.session) {
-      setError('❌ OTP aceito mas sem sessão. Tente pedir novo código.')
-      setLoading(false)
-      return
-    }
+    const tokenInput = document.createElement('input')
+    tokenInput.type = 'hidden'
+    tokenInput.name = 'token'
+    tokenInput.value = code.trim()
+    form.appendChild(tokenInput)
 
-    // 2. Salvar sessão no servidor
-    setError('Salvando sessão...')
-    const res = await fetch('/api/auth/set-session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        access_token: data.session.access_token,
-        refresh_token: data.session.refresh_token,
-      }),
-    })
-
-    if (!res.ok) {
-      const err = await res.json()
-      setError(`❌ Erro ao salvar sessão: ${err.error}`)
-      setLoading(false)
-      return
-    }
-
-    // 3. Tudo certo — redirecionar
-    setError('✅ Login ok! Redirecionando...')
-    setTimeout(() => { window.location.href = '/dashboard' }, 500)
+    document.body.appendChild(form)
+    form.submit()
   }
 
   return (
@@ -127,7 +116,7 @@ export default function LoginPage() {
             </form>
 
             <p className="text-xs text-gray-400 text-center mt-4">
-              Sem senha necessária. Código de 6 dígitos no seu email.
+              Sem senha necessária. Código de 8 dígitos no seu email.
             </p>
           </>
         ) : (
@@ -136,7 +125,7 @@ export default function LoginPage() {
               Código enviado!
             </h3>
             <p className="text-gray-500 text-sm text-center mb-6">
-              Digite o código de 6 dígitos enviado para <strong>{email}</strong>
+              Digite o código de 8 dígitos enviado para <strong>{email}</strong>
             </p>
 
             <form onSubmit={handleVerifyCode} className="space-y-4">
@@ -161,7 +150,7 @@ export default function LoginPage() {
 
               <button
                 type="submit"
-                disabled={loading || code.length < 6}
+                disabled={loading || code.length < 8}
                 className="w-full bg-green-700 hover:bg-green-800 disabled:bg-gray-300
                            text-white font-bold py-3 rounded-lg transition-colors text-sm"
               >
@@ -181,5 +170,13 @@ export default function LoginPage() {
 
       <p className="text-green-200 text-xs mt-6">R$50 por participante • 1° R$750 • 2° R$375</p>
     </main>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginContent />
+    </Suspense>
   )
 }
