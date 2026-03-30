@@ -1,7 +1,6 @@
 'use client'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { verifyOTPAction } from './actions/auth'
 
 export default function LoginPage() {
   const [email, setEmail]   = useState('')
@@ -34,9 +33,14 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
 
-    const result = await verifyOTPAction(email.trim(), code.trim())
-    if (result?.error) {
-      setError(`Erro: ${result.error}`)
+    const { error } = await supabase.auth.verifyOtp({
+      email: email.trim(),
+      token: code.trim(),
+      type: 'email',
+    })
+
+    if (error) {
+      setError(`Erro: ${error.message}`)
       setLoading(false)
     } else {
       window.location.href = '/dashboard'
