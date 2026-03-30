@@ -33,7 +33,8 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
 
-    // 1. Verificar OTP client-side para obter os tokens
+    // 1. Verificar OTP client-side
+    setError('Verificando código...')
     const { data, error } = await supabase.auth.verifyOtp({
       email: email.trim(),
       token: code.trim(),
@@ -41,18 +42,19 @@ export default function LoginPage() {
     })
 
     if (error) {
-      setError(`Erro: ${error.message}`)
+      setError(`❌ Erro OTP: ${error.message}`)
       setLoading(false)
       return
     }
 
     if (!data.session) {
-      setError('Código aceito mas sessão não criada. Tente novamente.')
+      setError('❌ OTP aceito mas sem sessão. Tente pedir novo código.')
       setLoading(false)
       return
     }
 
-    // 2. Enviar tokens para API que seta os cookies no servidor
+    // 2. Salvar sessão no servidor
+    setError('Salvando sessão...')
     const res = await fetch('/api/auth/set-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -64,13 +66,14 @@ export default function LoginPage() {
 
     if (!res.ok) {
       const err = await res.json()
-      setError(`Erro ao criar sessão: ${err.error}`)
+      setError(`❌ Erro ao salvar sessão: ${err.error}`)
       setLoading(false)
       return
     }
 
-    // 3. Navegar para o dashboard
-    window.location.href = '/dashboard'
+    // 3. Tudo certo — redirecionar
+    setError('✅ Login ok! Redirecionando...')
+    setTimeout(() => { window.location.href = '/dashboard' }, 500)
   }
 
   return (
