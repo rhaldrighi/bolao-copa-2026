@@ -47,10 +47,12 @@ function LoginContent() {
 
     const result = await verifyOTPAction(email.trim(), code.trim())
 
-    // Se chegou aqui, verifyOTPAction retornou um erro (redirect nunca retorna)
     if (result?.error) {
       setError(`❌ ${result.error}`)
       setLoading(false)
+    } else {
+      // Hard navigation: garante que o browser envia os cookies de sessão recém-setados
+      window.location.href = '/dashboard'
     }
   }
 

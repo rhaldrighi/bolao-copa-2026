@@ -1,6 +1,5 @@
 'use server'
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 
 export async function verifyOTPAction(email: string, token: string) {
   const supabase = createClient()
@@ -13,6 +12,6 @@ export async function verifyOTPAction(email: string, token: string) {
 
   if (error) return { error: error.message }
 
-  // Cookies de sessão já foram gravados via cookieStore.set() — redireciona direto
-  redirect('/dashboard')
+  // Cookies de sessão gravados via cookieStore.set() — retorna sucesso para o cliente navegar
+  return { success: true }
 }
