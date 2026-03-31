@@ -1,8 +1,8 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
+'use client'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 import Navbar from '@/components/Navbar'
-
-export const revalidate = 30
 
 type RankRow = {
   id: string; name: string; email: string; paid: boolean
@@ -10,20 +10,46 @@ type RankRow = {
 }
 
 const MEDALS: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' }
-const PRIZES: Record<number, string> = { 1: 'R$ 750', 2: 'R$ 375' }
+const PRIZES: Record<number, string>  = { 1: 'R$ 750', 2: 'R$ 375' }
 
-export default async function RankingPage() {
+export default function RankingPage() {
+  const router   = useRouter()
   const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/')
 
-  const [{ data: profile }, { data: ranking }] = await Promise.all([
-    supabase.from('profiles').select('*').eq('id', user.id).single(),
-    supabase.from('ranking').select('*').order('position'),
-  ])
+  const [loading, setLoading]   = useState(true)
+  const [userId, setUserId]     = useState<string | null>(null)
+  const [profile, setProfile]   = useState<{ name: string; is_admin: boolean } | null>(null)
+  const [rows, setRows]         = useState<RankRow[]>([])
 
-  const rows: RankRow[] = ranking ?? []
-  const myRow = rows.find(r => r.id === user.id)
+  useEffect(() => {
+    async function load() {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) { router.replace('/'); return }
+
+      const uid = session.user.id
+      setUserId(uid)
+
+      const [{ data: prof }, { data: ranking }] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', uid).single(),
+        supabase.from('ranking').select('*').order('position'),
+      ])
+
+      setProfile(prof)
+      setRows(ranking ?? [])
+      setLoading(false)
+    }
+    load()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="text-gray-400 text-sm">Carregando…</p>
+      </div>
+    )
+  }
+
+  const myRow = rows.find(r => r.id === userId)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -35,7 +61,7 @@ export default async function RankingPage() {
           <span className="text-gray-400 text-xs">{rows.length} participantes</span>
         </div>
 
-        {/* My position highlight */}
+        {/* Minha posição */}
         {myRow && (
           <div className="copa-header rounded-xl p-4 text-white">
             <p className="text-green-200 text-xs">Minha posição</p>
@@ -57,9 +83,8 @@ export default async function RankingPage() {
           </div>
         )}
 
-        {/* Full ranking table */}
+        {/* Tabela completa */}
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          {/* Header */}
           <div className="grid grid-cols-12 gap-2 px-4 py-2 bg-green-700 text-white text-xs font-bold">
             <div className="col-span-1 text-center">#</div>
             <div className="col-span-5">Participante</div>
@@ -76,7 +101,7 @@ export default async function RankingPage() {
           )}
 
           {rows.map((row, i) => {
-            const isMe = row.id === user.id
+            const isMe  = row.id === userId
             const medal = MEDALS[row.position]
             return (
               <div
@@ -103,12 +128,8 @@ export default async function RankingPage() {
                     )}
                   </div>
                 </div>
-                <div className="col-span-2 text-center text-sm text-gray-600">
-                  {row.match_pts}
-                </div>
-                <div className="col-span-2 text-center text-sm text-gray-600">
-                  {row.special_pts}
-                </div>
+                <div className="col-span-2 text-center text-sm text-gray-600">{row.match_pts}</div>
+                <div className="col-span-2 text-center text-sm text-gray-600">{row.special_pts}</div>
                 <div className={`col-span-2 text-center font-black text-sm
                   ${row.position === 1 ? 'text-yellow-500' :
                     row.position === 2 ? 'text-gray-500' :
