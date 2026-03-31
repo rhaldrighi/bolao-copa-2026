@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
-import { verifyOTPAction } from '@/app/actions/auth'
 
 function LoginContent() {
   const [email, setEmail]   = useState('')
@@ -45,15 +44,27 @@ function LoginContent() {
     setLoading(true)
     setError('')
 
-    const result = await verifyOTPAction(email.trim(), code.trim())
+    // Verificação direto no browser client — ele guarda a sessão em cookie automaticamente
+    const { data, error } = await supabase.auth.verifyOtp({
+      email: email.trim(),
+      token: code.trim(),
+      type: 'email',
+    })
 
-    if (result?.error) {
-      setError(`❌ ${result.error}`)
+    if (error) {
+      setError(`❌ ${error.message}`)
       setLoading(false)
-    } else {
-      // Hard navigation: garante que o browser envia os cookies de sessão recém-setados
-      window.location.href = '/dashboard'
+      return
     }
+
+    if (!data.session) {
+      setError('❌ Código aceito mas sessão não criada — solicite um novo código.')
+      setLoading(false)
+      return
+    }
+
+    // Sessão gravada em cookie pelo browser → navegação completa para o middleware pegar
+    window.location.href = '/dashboard'
   }
 
   return (

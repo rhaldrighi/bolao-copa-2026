@@ -23,8 +23,7 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const { data: { session } } = await supabase.auth.getSession()
-  const user = session?.user
+  const { data: { user } } = await supabase.auth.getUser()
 
   // Rotas protegidas
   const protectedPaths = ['/dashboard', '/palpites', '/ranking', '/admin']
